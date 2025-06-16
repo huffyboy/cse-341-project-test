@@ -12,7 +12,7 @@ export interface IOauthProvider {
 export interface ICustomer extends Document {
     _id: mongoose.Types.ObjectId;
     org_name: string;
-    org_phandle: string;
+    org_handle: string;
     timezone: string;
     email: string;
     phone: string;
@@ -30,10 +30,10 @@ const OauthProviderSchema = new Schema<IOauthProvider>({
 
 const CustomerSchema = new Schema<ICustomer>({
     org_name: { type: String, required: true },
-    org_phandle: { type: String, required: true },
+    org_handle: { type: String, required: true },
     timezone: { type: String, required: true },
-    email: { type: String, required: true, unique: true },
-    phone: { type: String, required: true, unique: true },
+    email: { type: String, required: false, unique: true },
+    phone: { type: String, required: false, unique: true },
     oauth_providers: { type: [OauthProviderSchema], required: true },
     account_setup_complete: { type: Boolean, default: false },
     marketing_consent: { type: Boolean, default: false },
