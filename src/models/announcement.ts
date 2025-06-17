@@ -1,7 +1,7 @@
 // src/models/Announcements.ts
 import mongoose, { Schema, Document, model } from "mongoose";
 
-interface IAnnouncement extends Document {
+export interface IAnnouncement extends Document {
   _id: mongoose.Types.ObjectId;
   customerId: mongoose.Types.ObjectId;
   content: string;
@@ -24,5 +24,17 @@ const AnnouncementSchema = new Schema<IAnnouncement>(
   },
   { timestamps: true }
 );
+
+// Add a virtual for the customer reference
+AnnouncementSchema.virtual("customer", {
+  ref: "Customer",
+  localField: "customerId",
+  foreignField: "_id",
+  justOne: true,
+});
+
+// Enable virtuals in JSON
+AnnouncementSchema.set("toJSON", { virtuals: true });
+AnnouncementSchema.set("toObject", { virtuals: true });
 
 export default model<IAnnouncement>("Announcement", AnnouncementSchema);

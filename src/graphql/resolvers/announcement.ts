@@ -8,32 +8,39 @@ import {
 import Announcement from "../../models/announcement.js";
 import {
   NotFoundError,
-  ValidationError,
   DatabaseError,
   isValidationError,
   AuthenticationError,
 } from "../../utils/errors.js";
 import { GraphQLContext } from "../context.js";
+import { ZodError } from "zod";
+import { GraphQLError } from "graphql";
 
 export const announcementResolvers = {
   Query: {
     announcements: async () => {
       try {
-        return await Announcement.find();
+        return await Announcement.find().populate("customer");
       } catch {
         throw new DatabaseError("Failed to fetch announcements");
       }
     },
     announcement: async (_: unknown, { id }: { id: string }) => {
       try {
-        const announcement = await Announcement.findById(id);
+        const announcement =
+          await Announcement.findById(id).populate("customer");
         if (!announcement) {
           throw new NotFoundError("Announcement");
         }
         return announcement;
       } catch (error) {
         if (error instanceof NotFoundError) {
-          throw error;
+          throw new GraphQLError(error.message, {
+            extensions: {
+              code: error.getCode(),
+              statusCode: error.getStatusCode(),
+            },
+          });
         }
         throw new DatabaseError("Failed to fetch announcement");
       }
@@ -45,14 +52,30 @@ export const announcementResolvers = {
       { input }: { input: AnnouncementInput },
       context: GraphQLContext
     ) => {
-      if (!context.customer) throw new AuthenticationError();
+      if (!context.customer) {
+        throw new AuthenticationError();
+      }
       try {
         const validatedData = validateAnnouncement(input);
         const announcement = new Announcement(validatedData);
-        return await announcement.save();
+        await announcement.save();
+        return await announcement.populate("customer");
       } catch (error) {
+        if (error instanceof ZodError) {
+          throw new GraphQLError(error.errors[0].message, {
+            extensions: {
+              code: "VALIDATION_ERROR",
+              statusCode: 400,
+            },
+          });
+        }
         if (isValidationError(error)) {
-          throw new ValidationError(error.message);
+          throw new GraphQLError(error.message, {
+            extensions: {
+              code: "VALIDATION_ERROR",
+              statusCode: 400,
+            },
+          });
         }
         throw new DatabaseError("Failed to create announcement");
       }
@@ -71,17 +94,35 @@ export const announcementResolvers = {
           {
             new: true,
           }
-        );
+        ).populate("customer");
         if (!announcement) {
           throw new NotFoundError("Announcement");
         }
         return announcement;
       } catch (error) {
         if (error instanceof NotFoundError) {
-          throw error;
+          throw new GraphQLError(error.message, {
+            extensions: {
+              code: error.getCode(),
+              statusCode: error.getStatusCode(),
+            },
+          });
+        }
+        if (error instanceof ZodError) {
+          throw new GraphQLError(error.errors[0].message, {
+            extensions: {
+              code: "VALIDATION_ERROR",
+              statusCode: 400,
+            },
+          });
         }
         if (isValidationError(error)) {
-          throw new ValidationError(error.message);
+          throw new GraphQLError(error.message, {
+            extensions: {
+              code: "VALIDATION_ERROR",
+              statusCode: 400,
+            },
+          });
         }
         throw new DatabaseError("Failed to update announcement");
       }
@@ -100,7 +141,12 @@ export const announcementResolvers = {
         return true;
       } catch (error) {
         if (error instanceof NotFoundError) {
-          throw error;
+          throw new GraphQLError(error.message, {
+            extensions: {
+              code: error.getCode(),
+              statusCode: error.getStatusCode(),
+            },
+          });
         }
         throw new DatabaseError("Failed to delete announcement");
       }

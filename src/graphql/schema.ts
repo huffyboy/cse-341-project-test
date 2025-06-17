@@ -8,6 +8,7 @@ import { announcementResolvers } from "./resolvers/announcement.js";
 import { customerResolvers } from "./resolvers/customer.js";
 import { authResolvers } from "./resolvers/auth.js";
 import logger from "../config/logger.js";
+import { ApolloServerPluginLandingPageGraphQLPlayground } from "@apollo/server-plugin-landing-page-graphql-playground";
 
 // Combine type definitions
 const typeDefs = [announcementType, customerType, authType];
@@ -46,16 +47,28 @@ export const server = new ApolloServer({
   formatError: (error: GraphQLFormattedError) => {
     const originalError = (error as { originalError?: ApolloError })
       .originalError;
+
+    // If the error already has extensions, use them
+    if (error.extensions) {
+      // Remove stack trace from extensions
+      const extensions = { ...error.extensions };
+      delete extensions.stacktrace;
+      return {
+        message: error.message,
+        extensions,
+      };
+    }
+
+    // Otherwise, format the error with appropriate status code and code
     const statusCode = originalError?.extensions?.statusCode || 500;
     const code = originalError?.extensions?.code || "INTERNAL_SERVER_ERROR";
 
-    // Log the error
+    // Log the error without stack trace
     logger.error("GraphQL Error", {
       message: error.message,
       code,
       statusCode,
       path: error.path,
-      locations: error.locations,
     });
 
     return {
@@ -80,6 +93,7 @@ export const server = new ApolloServer({
             if (response.body.kind === "single") {
               const errors = response.body.singleResult.errors;
               if (errors?.length) {
+                // Log errors without stack traces
                 logger.error("GraphQL Operation Error", {
                   operation,
                   operationName,
@@ -100,11 +114,10 @@ export const server = new ApolloServer({
         };
       },
     },
+    // Add the GraphQL Playground plugin
+    ApolloServerPluginLandingPageGraphQLPlayground(),
   ],
-  // Enable GraphQL Playground in production
+  // Enable introspection and disable CSRF prevention for the Playground
   introspection: true,
   csrfPrevention: false,
-  // Add these settings for the Playground
-  cache: "bounded",
-  allowBatchedHttpRequests: true,
 });

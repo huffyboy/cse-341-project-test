@@ -20,8 +20,11 @@
   "license": "ISC",
   "dependencies": {
     "@apollo/server": "^4.12.2",
+    "@apollo/server-plugin-landing-page-graphql-playground": "^4.0.1",
     "@as-integrations/express5": "^1.1.0",
+    "@types/cors": "^2.8.19",
     "apollo-server-express": "^3.13.0",
+    "cors": "^2.8.5",
     "dotenv": "^16.5.0",
     "express": "^5.1.0",
     "graphql": "^16.11.0",

@@ -5,27 +5,27 @@ export const announcementType = `
         "Unique identifier for the announcement"
         _id: ID!
         "The customer this announcement is for"
-        customer_id: Customer!
+        customer: Customer!
         "The content/message of the announcement"
         content: String!
         "When the announcement should be sent"
-        scheduled_time: String!
+        scheduledTime: String!
         "Whether the announcement has been sent"
-        is_sent: Boolean!
+        isSent: Boolean!
         "When the announcement was created"
-        created_at: String!
+        createdAt: String!
         "When the announcement was last updated"
-        updated_at: String!
+        updatedAt: String!
     }
 
     "Input type for creating a new announcement"
     input AnnouncementInput {
         "ID of the customer to send the announcement to"
-        customer_id: ID!
+        customerId: ID!
         "The content/message of the announcement"
         content: String!
         "When the announcement should be sent"
-        scheduled_time: String!
+        scheduledTime: String!
     }
 
     "Input type for updating an existing announcement"
@@ -33,9 +33,9 @@ export const announcementType = `
         "The new content/message of the announcement"
         content: String
         "The new scheduled time for the announcement"
-        scheduled_time: String
+        scheduledTime: String
         "Whether the announcement has been sent"
-        is_sent: Boolean
+        isSent: Boolean
     }
 
     type Query {

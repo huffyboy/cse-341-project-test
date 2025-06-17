@@ -8,19 +8,19 @@ const baseAnnouncementSchema = z.object({
     .min(1, "Content cannot be empty")
     .max(160, "Content must be less than 160 characters")
     .trim(),
-  scheduled_time: z
+  scheduledTime: z
     .string()
     .datetime("Invalid date format")
     .refine(
       (date) => new Date(date) > new Date(),
       "Scheduled time must be in the future"
     ),
-  is_sent: z.boolean().default(false),
+  isSent: z.boolean().default(false),
 });
 
 // Schema for creating a new announcement
 export const announcementSchema = baseAnnouncementSchema.extend({
-  customer_id: z
+  customerId: z
     .string()
     .min(1, "Customer ID is required")
     .regex(/^[0-9a-fA-F]{24}$/, "Invalid MongoDB ObjectId format"),
@@ -29,7 +29,7 @@ export const announcementSchema = baseAnnouncementSchema.extend({
 // Schema for updating an existing announcement
 export const announcementUpdateSchema = baseAnnouncementSchema
   .extend({
-    customer_id: z
+    customerId: z
       .string()
       .regex(/^[0-9a-fA-F]{24}$/, "Invalid MongoDB ObjectId format")
       .optional(),

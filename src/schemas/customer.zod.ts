@@ -16,13 +16,22 @@ const baseCustomerSchema = z.object({
     .trim(),
   orgHandle: z
     .string()
+    .trim()
     .min(3, "Organization handle must be at least 3 characters")
     .max(30, "Organization handle must be less than 30 characters")
     .regex(
-      /^[a-zA-Z0-9_-]+$/,
-      "Organization handle can only contain letters, numbers, underscores, and hyphens"
+      /^[a-z0-9][a-z0-9-]*[a-z0-9]$/,
+      "Organization handle can only contain lowercase letters, numbers, and hyphens"
     )
-    .trim(),
+    .transform((val) => val.toLowerCase())
+    .refine(
+      (val) => !val.includes("--"),
+      "Organization handle cannot contain consecutive hyphens"
+    )
+    .refine(
+      (val) => !val.includes(" "),
+      "Organization handle cannot contain spaces"
+    ),
   timezone: z
     .string()
     .min(1, "Timezone is required")

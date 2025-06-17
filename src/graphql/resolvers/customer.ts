@@ -8,13 +8,12 @@ import {
 import { Customer, ICustomer } from "../../models/customer.js";
 import {
   NotFoundError,
-  ValidationError,
   DatabaseError,
-  isValidationError,
   AuthenticationError,
 } from "../../utils/errors.js";
 import { GraphQLError } from "graphql";
 import { GraphQLContext } from "../context.js";
+import { ZodError } from "zod";
 
 export const customerResolvers = {
   Query: {
@@ -57,8 +56,14 @@ export const customerResolvers = {
         const customer = new Customer(validatedData);
         return await customer.save();
       } catch (error) {
-        if (isValidationError(error)) {
-          throw new ValidationError(error.message);
+        if (error instanceof ZodError) {
+          const message = error.errors[0]?.message || "Validation error";
+          throw new GraphQLError(message, {
+            extensions: {
+              code: "VALIDATION_ERROR",
+              statusCode: 400,
+            },
+          });
         }
         throw new DatabaseError("Failed to create customer");
       }
@@ -88,12 +93,30 @@ export const customerResolvers = {
         return customer;
       } catch (error) {
         if (error instanceof NotFoundError) {
-          throw error;
+          throw new GraphQLError(error.message, {
+            extensions: {
+              code: error.getCode(),
+              statusCode: error.getStatusCode(),
+            },
+          });
         }
-        if (isValidationError(error)) {
-          throw new ValidationError(error.message);
+
+        if (error instanceof ZodError) {
+          const message = error.errors[0]?.message || "Validation error";
+          throw new GraphQLError(message, {
+            extensions: {
+              code: "VALIDATION_ERROR",
+              statusCode: 400,
+            },
+          });
         }
-        throw new DatabaseError("Failed to update customer");
+
+        throw new GraphQLError("Failed to update customer", {
+          extensions: {
+            code: "INTERNAL_SERVER_ERROR",
+            statusCode: 500,
+          },
+        });
       }
     },
     deleteCustomer: async (
