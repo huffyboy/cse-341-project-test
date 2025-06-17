@@ -85,6 +85,7 @@ const startServer = async () => {
         },
       })
     );
+
     app.get("/", (_req: Request, res: Response) => {
       res.send("Hello, world!");
     });
@@ -92,6 +93,7 @@ const startServer = async () => {
     // Start Express server
     app.listen(PORT, () => {
       logger.info(`Server is running at ${URL}`);
+      logger.info(`GraphQL Playground available at ${URL}/graphql`);
     });
   } catch (error) {
     logger.error("Failed to start server:", error);
