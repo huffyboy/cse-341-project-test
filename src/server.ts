@@ -44,6 +44,9 @@ const URL = process.env.URL || `http://localhost:${PORT}`;
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+// Trust proxy
+app.set('trust proxy', true);
+
 // Enable CORS for all routes
 app.use(cors());
 
