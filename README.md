@@ -39,11 +39,16 @@
 - Apollo Server for GraphQL
   - Operation logging for debugging and monitoring
   - Error handling with stack traces in development
+  - Interactive API documentation via GraphQL Playground
 - Express.js
 - MongoDB (based on schema structure)
 - Zod for runtime validation
 - ESLint with flat config format
 - Prettier for code formatting
+
+## API Documentation
+
+The API documentation is available through GraphQL Playground at <http://localhost:3000/graphql>
 
 ## GraphQL Schema
 
