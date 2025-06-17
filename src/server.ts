@@ -157,6 +157,35 @@ const startServer = async () => {
       })
     );
 
+    // Add a route to serve the GraphQL Playground
+    app.get("/graphql", (_req, res) => {
+      res.send(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <title>GraphQL Playground</title>
+          <meta charset="utf-8" />
+          <meta name="viewport" content="user-scalable=no, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, minimal-ui">
+          <link rel="stylesheet" href="https://embeddable-sandbox.cdn.apollographql.com/_latest/embeddable-sandbox.css" />
+        </head>
+        <body>
+          <div id="sandbox" style="position: absolute; top: 0; right: 0; bottom: 0; left: 0;"></div>
+          <script src="https://embeddable-sandbox.cdn.apollographql.com/_latest/embeddable-sandbox.umd.production.min.js"></script>
+          <script>
+            new window.EmbeddedSandbox({
+              target: '#sandbox',
+              initialEndpoint: window.location.origin + '/graphql',
+              includeCookies: false,
+              initialHeaders: {
+                'Content-Type': 'application/json',
+              },
+            });
+          </script>
+        </body>
+        </html>
+      `);
+    });
+
     // Start Express server
     app.listen(PORT, () => {
       logger.info(`Server is running at ${URL}`);

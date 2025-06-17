@@ -104,4 +104,7 @@ export const server = new ApolloServer({
   // Enable GraphQL Playground in production
   introspection: true,
   csrfPrevention: false,
+  // Add these settings for the Playground
+  cache: "bounded",
+  allowBatchedHttpRequests: true,
 });
