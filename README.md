@@ -27,8 +27,7 @@
 ├── tsconfig.json      # TypeScript configuration
 ├── package.json       # Project dependencies and scripts
 ├── pnpm-lock.yaml     # PNPM lock file
-├── eslint.config.js   # ESLint configuration
-├── .eslintignore      # ESLint ignore patterns
+├── eslint.config.js   # ESLint configuration (flat config format)
 ├── .prettierrc.json   # Prettier configuration
 ├── .prettierignore    # Prettier ignore patterns
 └── .gitignore         # Git ignore patterns
@@ -38,9 +37,13 @@
 
 - Node.js with TypeScript
 - Apollo Server for GraphQL
+  - Operation logging for debugging and monitoring
+  - Error handling with stack traces in development
 - Express.js
 - MongoDB (based on schema structure)
 - Zod for runtime validation
+- ESLint with flat config format
+- Prettier for code formatting
 
 ## GraphQL Schema
 
@@ -88,3 +91,4 @@
 - ESLint and Prettier for code formatting
 - PNPM as package manager
 - GraphQL schema validation and error handling configured
+- Consistent camelCase naming convention for all models and fields
