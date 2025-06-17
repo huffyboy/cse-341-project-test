@@ -46,6 +46,35 @@
 - ESLint with flat config format
 - Prettier for code formatting
 
+## Error Handling
+
+All errors follow a consistent format in GraphQL responses:
+
+```json
+{
+  "errors": [{
+    "message": "Error message",
+    "extensions": {
+      "code": "ERROR_CODE",
+      "statusCode": 400/404/500
+    }
+  }]
+}
+```
+
+### Error Logging
+
+- All errors are logged with:
+  - Error message
+  - Error code
+  - Status code
+  - Stack trace (in development only)
+- Operation logging includes:
+  - Operation type
+  - Operation name
+  - Duration
+  - Error details (if any)
+
 ## API Documentation
 
 The API documentation is available through GraphQL Playground at <http://localhost:3000/graphql>

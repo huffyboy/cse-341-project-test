@@ -5,12 +5,16 @@ import { announcementType } from "./types/announcement.js";
 import { customerType } from "./types/customer.js";
 import logger from "../config/logger.js";
 
-interface GraphQLError {
+interface ApolloError {
   message: string;
   extensions?: {
     originalError?: {
       message?: string;
+      statusCode?: number;
+      code?: string;
     };
+    code?: string;
+    statusCode?: number;
     stack?: string;
   };
 }
@@ -21,7 +25,7 @@ export const typeDefs = `
     ${customerType}
 `;
 
-// Import resolvers (we'll create these next)
+// Import resolvers
 import { announcementResolvers } from "./resolvers/announcement.js";
 import { customerResolvers } from "./resolvers/customer.js";
 
@@ -49,14 +53,43 @@ export const server = new ApolloServer({
   typeDefs,
   resolvers,
   // Add any additional server options here
-  formatError: (error: GraphQLError) => {
-    // Remove stack trace in production
+  formatError: (error: ApolloError) => {
     const originalError = error.extensions?.originalError;
+    let statusCode = 500;
+    let code = "INTERNAL_SERVER_ERROR";
+
+    // Handle GraphQL validation errors
+    if (error.extensions?.code === "GRAPHQL_VALIDATION_FAILED") {
+      statusCode = 400;
+      code = "VALIDATION_ERROR";
+    }
+    // Handle our custom errors
+    else if (error.extensions?.code) {
+      statusCode = error.extensions.statusCode || 500;
+      code = error.extensions.code;
+    }
+    // Handle other errors
+    else if (originalError) {
+      statusCode = originalError.statusCode || 500;
+      code = originalError.code || "INTERNAL_SERVER_ERROR";
+    }
+
+    // Log the error
+    logger.error({
+      message: error.message,
+      code,
+      statusCode,
+      stack:
+        process.env.NODE_ENV === "production"
+          ? undefined
+          : error.extensions?.stack,
+    });
+
     return {
-      ...error,
-      message: originalError?.message || error.message,
+      message: error.message,
       extensions: {
-        ...error.extensions,
+        code,
+        statusCode,
         stack:
           process.env.NODE_ENV === "production"
             ? undefined
@@ -101,7 +134,11 @@ export const server = new ApolloServer({
               message: "GraphQL Operation Error",
               operation,
               operationName,
-              errors: errors.map((e) => e.message),
+              errors: errors.map((e) => ({
+                message: e.message,
+                code: e.extensions?.code,
+                statusCode: e.extensions?.statusCode,
+              })),
               timestamp: new Date().toISOString(),
             });
           },

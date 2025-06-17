@@ -6,14 +6,35 @@ import {
   AnnouncementUpdateInput,
 } from "../../schemas/announcement.zod.js";
 import Announcement from "../../models/announcement.js";
+import {
+  NotFoundError,
+  ValidationError,
+  DatabaseError,
+  isValidationError,
+} from "../../utils/errors.js";
 
 export const announcementResolvers = {
   Query: {
     announcements: async () => {
-      return await Announcement.find();
+      try {
+        return await Announcement.find();
+      } catch {
+        throw new DatabaseError("Failed to fetch announcements");
+      }
     },
     announcement: async (_: unknown, { id }: { id: string }) => {
-      return await Announcement.findById(id);
+      try {
+        const announcement = await Announcement.findById(id);
+        if (!announcement) {
+          throw new NotFoundError("Announcement");
+        }
+        return announcement;
+      } catch (error) {
+        if (error instanceof NotFoundError) {
+          throw error;
+        }
+        throw new DatabaseError("Failed to fetch announcement");
+      }
     },
   },
   Mutation: {
@@ -21,22 +42,57 @@ export const announcementResolvers = {
       _: unknown,
       { input }: { input: AnnouncementInput }
     ) => {
-      const validatedData = validateAnnouncement(input);
-      const announcement = new Announcement(validatedData);
-      return await announcement.save();
+      try {
+        const validatedData = validateAnnouncement(input);
+        const announcement = new Announcement(validatedData);
+        return await announcement.save();
+      } catch (error) {
+        if (isValidationError(error)) {
+          throw new ValidationError(error.message);
+        }
+        throw new DatabaseError("Failed to create announcement");
+      }
     },
     updateAnnouncement: async (
       _: unknown,
       { id, input }: { id: string; input: AnnouncementUpdateInput }
     ) => {
-      const validatedData = validateAnnouncementUpdate(input);
-      return await Announcement.findByIdAndUpdate(id, validatedData, {
-        new: true,
-      });
+      try {
+        const validatedData = validateAnnouncementUpdate(input);
+        const announcement = await Announcement.findByIdAndUpdate(
+          id,
+          validatedData,
+          {
+            new: true,
+          }
+        );
+        if (!announcement) {
+          throw new NotFoundError("Announcement");
+        }
+        return announcement;
+      } catch (error) {
+        if (error instanceof NotFoundError) {
+          throw error;
+        }
+        if (isValidationError(error)) {
+          throw new ValidationError(error.message);
+        }
+        throw new DatabaseError("Failed to update announcement");
+      }
     },
     deleteAnnouncement: async (_: unknown, { id }: { id: string }) => {
-      await Announcement.findByIdAndDelete(id);
-      return true;
+      try {
+        const announcement = await Announcement.findByIdAndDelete(id);
+        if (!announcement) {
+          throw new NotFoundError("Announcement");
+        }
+        return true;
+      } catch (error) {
+        if (error instanceof NotFoundError) {
+          throw error;
+        }
+        throw new DatabaseError("Failed to delete announcement");
+      }
     },
   },
 };
