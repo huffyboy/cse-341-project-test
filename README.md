@@ -2,7 +2,7 @@
 
 ## Project Structure
 
-```
+```text
 .
 ├── src/
 │   ├── config/         # Configuration files

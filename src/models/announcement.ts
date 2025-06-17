@@ -3,24 +3,24 @@ import mongoose, { Schema, Document, model } from "mongoose";
 
 interface IAnnouncement extends Document {
   _id: mongoose.Types.ObjectId;
-  customer_id: mongoose.Types.ObjectId;
+  customerId: mongoose.Types.ObjectId;
   content: string;
-  scheduled_time: Date;
-  is_sent: boolean;
-  created_at: Date;
-  updated_at: Date;
+  scheduledTime: Date;
+  isSent: boolean;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 const AnnouncementSchema = new Schema<IAnnouncement>(
   {
-    customer_id: {
+    customerId: {
       type: Schema.Types.ObjectId,
       ref: "Customer",
       required: true,
     },
     content: { type: String, required: true },
-    scheduled_time: { type: Date, required: true },
-    is_sent: { type: Boolean, default: false },
+    scheduledTime: { type: Date, required: true },
+    isSent: { type: Boolean, default: false },
   },
   { timestamps: true }
 );

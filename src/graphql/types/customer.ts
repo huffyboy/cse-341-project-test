@@ -5,9 +5,9 @@ export const customerType = `
         "Unique identifier for the customer"
         _id: ID!
         "The name of the customer's organization"
-        org_name: String!
+        orgName: String!
         "The handle to interact with the customer's organization"
-        org_handle: String!
+        orgHandle: String!
         "The timezone of the customer"
         timezone: String!
         "The email of the customer"
@@ -15,32 +15,36 @@ export const customerType = `
         "The phone number of the customer"
         phone: String!
         "Whether the customer has completed account setup"
-        account_setup_complete: Boolean!
+        accountSetupComplete: Boolean!
         "Whether the customer has given marketing consent"
-        marketing_consent: Boolean!
+        marketingConsent: Boolean!
         "The OAuth providers connected to this customer"
-        oauth_providers: [OAuthProvider!]!
+        oauthProviders: [OAuthProvider!]!
         "When the customer was created"
-        created_at: String!
+        createdAt: String!
         "When the customer was last updated"
-        updated_at: String!
+        updatedAt: String!
     }
 
     "OAuth provider information for a customer"
     type OAuthProvider {
         "Unique identifier for the OAuth provider"
         _id: ID!
+        "The provider's unique identifier"
+        providerId: String!
         "The email associated with this OAuth provider (if available)"
         email: String
         "When this OAuth provider was connected"
-        created_at: String!
+        createdAt: String!
+        "When this OAuth provider was last updated"
+        updatedAt: String!
     }
 
     input CustomerInput {
         "The name of the customer's organization"
-        org_name: String!
+        orgName: String!
         "The handle to interact with the customer's organization"
-        org_handle: String!
+        orgHandle: String!
         "The timezone of the customer"
         timezone: String!
         "The email of the customer"
@@ -48,14 +52,14 @@ export const customerType = `
         "The phone number of the customer"
         phone: String!
         "Whether the customer has given marketing consent"
-        marketing_consent: Boolean!
+        marketingConsent: Boolean!
     }
 
     input CustomerUpdateInput {
         "The name of the customer's organization"
-        org_name: String
+        orgName: String
         "The handle to interact with the customer's organization"
-        org_handle: String
+        orgHandle: String
         "The timezone of the customer"
         timezone: String
         "The email of the customer"
@@ -63,9 +67,9 @@ export const customerType = `
         "The phone number of the customer"
         phone: String
         "Whether the customer has completed account setup"
-        account_setup_complete: Boolean
+        accountSetupComplete: Boolean
         "Whether the customer has given marketing consent"
-        marketing_consent: Boolean
+        marketingConsent: Boolean
     }
 
     type Query {

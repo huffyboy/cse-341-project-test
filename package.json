@@ -8,8 +8,8 @@
     "dev": "tsx watch src/server.ts",
     "build": "tsc",
     "start": "node dist/server.js",
-    "lint": "eslint . --ext .ts,.tsx,.js,.jsx",
-    "lint:fix": "eslint . --ext .ts,.tsx,.js,.jsx --fix",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "typecheck": "tsc --noEmit",
@@ -20,6 +20,7 @@
   "license": "ISC",
   "dependencies": {
     "@apollo/server": "^4.12.2",
+    "@as-integrations/express5": "^1.1.0",
     "dotenv": "^16.5.0",
     "express": "^5.1.0",
     "graphql": "^16.11.0",
@@ -30,24 +31,19 @@
     "zod": "^3.25.64"
   },
   "devDependencies": {
-    "@eslint/css": "^0.9.0",
-    "@eslint/js": "^9.29.0",
-    "@eslint/json": "^0.12.0",
-    "@eslint/markdown": "^6.5.0",
     "@types/express": "^5.0.3",
     "@types/node": "^24.0.1",
     "@typescript-eslint/eslint-plugin": "^8.34.0",
-    "@typescript-eslint/parser": "^8.34.0",
+    "@typescript-eslint/parser": "^8.34.1",
     "cross-env": "^7.0.3",
-    "eslint": "^9.29.0",
+    "eslint": "^8.57.1",
     "eslint-plugin-react": "^7.37.5",
     "globals": "^16.2.0",
     "husky": "^9.1.7",
     "lint-staged": "^16.1.0",
     "prettier": "^3.5.3",
     "tsx": "^4.7.1",
-    "typescript": "^5.8.3",
-    "typescript-eslint": "^8.34.0"
+    "typescript": "^5.8.3"
   },
   "volta": {
     "node": "22.16.0"
