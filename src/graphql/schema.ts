@@ -101,4 +101,7 @@ export const server = new ApolloServer({
       },
     },
   ],
+  // Enable GraphQL Playground in production
+  introspection: true,
+  csrfPrevention: false,
 });
