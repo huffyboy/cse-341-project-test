@@ -1,48 +1,111 @@
 // src/models/Customer.ts
-import mongoose, { Schema, Document } from "mongoose";
+import mongoose from "mongoose";
 
-export interface IOauthProvider {
-  _id: mongoose.Types.ObjectId;
+export interface IOAuthProvider {
+  provider: "google" | "github";
   providerId: string;
-  email: string;
-  createdAt: Date;
-  updatedAt: Date;
+  displayName?: string;
+  email?: string;
+  profileUrl?: string;
 }
 
-export interface ICustomer extends Document {
+export interface ICustomer {
   _id: mongoose.Types.ObjectId;
-  orgName: string;
-  orgHandle: string;
-  timezone: string;
-  email: string;
-  phone: string;
-  oauthProviders: IOauthProvider[];
+  orgName?: string;
+  orgHandle?: string;
+  email?: string;
+  phone?: string;
+  timezone?: string;
+  marketingConsent?: boolean;
+  oauthProviders: IOAuthProvider[];
   accountSetupComplete: boolean;
-  marketingConsent: boolean;
-  createdAt: Date;
-  updatedAt: Date;
+  isAccountSetupComplete(): boolean;
 }
 
-const OauthProviderSchema = new Schema<IOauthProvider>(
+const customerSchema = new mongoose.Schema<ICustomer>(
   {
-    providerId: { type: String, required: true },
-    email: { type: String, required: false },
+    orgName: {
+      type: String,
+      required: false,
+    },
+    orgHandle: {
+      type: String,
+      required: false,
+      unique: true,
+      sparse: true, // Allows null/undefined values to be unique
+    },
+    email: {
+      type: String,
+      required: false,
+      unique: true,
+      sparse: true, // Allows null/undefined values to be unique
+    },
+    phone: {
+      type: String,
+    },
+    timezone: {
+      type: String,
+      required: false,
+      default: "UTC",
+    },
+    marketingConsent: {
+      type: Boolean,
+      required: false,
+      default: false,
+    },
+    oauthProviders: [
+      {
+        provider: {
+          type: String,
+          enum: ["google", "github"],
+          required: true,
+        },
+        providerId: {
+          type: String,
+          required: true,
+        },
+        displayName: String,
+        email: String,
+        profileUrl: String,
+        createdAt: {
+          type: Date,
+          default: Date.now,
+        },
+        updatedAt: {
+          type: Date,
+          default: Date.now,
+        },
+      },
+    ],
+    accountSetupComplete: {
+      type: Boolean,
+      required: true,
+      default: false,
+    },
   },
-  { timestamps: true }
+  {
+    timestamps: true,
+  }
 );
 
-const CustomerSchema = new Schema<ICustomer>(
-  {
-    orgName: { type: String, required: true },
-    orgHandle: { type: String, required: true },
-    timezone: { type: String, required: true },
-    email: { type: String, required: false, unique: true },
-    phone: { type: String, required: false, unique: true },
-    oauthProviders: { type: [OauthProviderSchema], required: true },
-    accountSetupComplete: { type: Boolean, default: false },
-    marketingConsent: { type: Boolean, default: false },
-  },
-  { timestamps: true }
-);
+// Add a method to check if account setup is complete
+customerSchema.methods.isAccountSetupComplete = function (): boolean {
+  const hasValidOAuth = this.oauthProviders && this.oauthProviders.length > 0;
+  const hasRequiredFields = Boolean(
+    this.orgName &&
+      this.orgHandle &&
+      this.email &&
+      this.timezone &&
+      this.marketingConsent !== undefined
+  );
 
-export const Customer = mongoose.model<ICustomer>("Customer", CustomerSchema);
+  return hasValidOAuth && hasRequiredFields;
+};
+
+// Pre-save middleware to update accountSetupComplete
+customerSchema.pre("save", function (this: ICustomer, next) {
+  this.accountSetupComplete = this.isAccountSetupComplete();
+  next();
+});
+
+export const Customer = mongoose.model<ICustomer>("Customer", customerSchema);

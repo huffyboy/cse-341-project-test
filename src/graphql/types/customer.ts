@@ -5,19 +5,19 @@ export const customerType = `
         "Unique identifier for the customer"
         _id: ID!
         "The name of the customer's organization"
-        orgName: String!
+        orgName: String
         "The handle to interact with the customer's organization"
-        orgHandle: String!
+        orgHandle: String
         "The timezone of the customer"
-        timezone: String!
+        timezone: String
         "The email of the customer"
-        email: String!
+        email: String
         "The phone number of the customer"
-        phone: String!
+        phone: String
         "Whether the customer has completed account setup"
         accountSetupComplete: Boolean!
         "Whether the customer has given marketing consent"
-        marketingConsent: Boolean!
+        marketingConsent: Boolean
         "The OAuth providers connected to this customer"
         oauthProviders: [OAuthProvider!]!
         "When the customer was created"
@@ -66,8 +66,6 @@ export const customerType = `
         email: String
         "The phone number of the customer"
         phone: String
-        "Whether the customer has completed account setup"
-        accountSetupComplete: Boolean
         "Whether the customer has given marketing consent"
         marketingConsent: Boolean
     }

@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CSE-341 Project Landing Page</title>
+    <style>
+      body {
+        font-family: sans-serif;
+        background: #f7f7f7;
+        text-align: center;
+        padding: 40px;
+      }
+      .container {
+        background: #fff;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px #0001;
+        display: inline-block;
+        padding: 32px 48px;
+      }
+      h1 {
+        margin-bottom: 16px;
+      }
+      .btn {
+        display: inline-block;
+        margin: 16px 0;
+        padding: 12px 32px;
+        background: #24292f;
+        color: #fff;
+        border: none;
+        border-radius: 4px;
+        font-size: 1.1em;
+        cursor: pointer;
+        text-decoration: none;
+      }
+      .btn:hover {
+        background: #444d56;
+      }
+      .links {
+        margin-top: 24px;
+      }
+      .links a {
+        color: #0366d6;
+        text-decoration: none;
+        margin: 0 8px;
+      }
+      .links a:hover {
+        text-decoration: underline;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Welcome to the CSE-341 Project</h1>
+      <p>Authenticate with GitHub to use the API:</p>
+      <a id="github-login-btn" class="btn" href="#">Login with GitHub</a>
+      <div class="links">
+        <p>
+          <a href="/graphql" target="_blank">GraphQL Playground (API Docs)</a>
+        </p>
+      </div>
+    </div>
+    <script src="/config.js"></script>
+    <script>
+      window.addEventListener("DOMContentLoaded", function () {
+        var btn = document.getElementById("github-login-btn");
+        if (window.GITHUB_CLIENT_ID && btn) {
+          btn.href = `https://github.com/login/oauth/authorize?client_id=${window.GITHUB_CLIENT_ID}&scope=user:email`;
+        }
+      });
+    </script>
+  </body>
+</html>

@@ -3,18 +3,18 @@ import { z } from "zod";
 
 // OAuth provider schema
 const oauthProviderSchema = z.object({
-  provider_id: z.string().min(1, "Provider ID is required"),
+  providerId: z.string().min(1, "Provider ID is required"),
   email: z.string().email("Invalid email address").optional(),
 });
 
 // Base schema for common fields
 const baseCustomerSchema = z.object({
-  org_name: z
+  orgName: z
     .string()
     .min(1, "Organization name is required")
     .max(100, "Organization name must be less than 100 characters")
     .trim(),
-  org_handle: z
+  orgHandle: z
     .string()
     .min(3, "Organization handle must be at least 3 characters")
     .max(30, "Organization handle must be less than 30 characters")
@@ -39,11 +39,11 @@ const baseCustomerSchema = z.object({
     .string()
     .regex(/^\+?[1-9]\d{1,14}$/, "Invalid phone number format")
     .optional(),
-  oauth_providers: z
+  oauthProviders: z
     .array(oauthProviderSchema)
     .min(1, "At least one OAuth provider is required"),
-  account_setup_complete: z.boolean().default(false),
-  marketing_consent: z.boolean().default(false),
+  accountSetupComplete: z.boolean().default(false),
+  marketingConsent: z.boolean().default(false),
 });
 
 // Schema for creating a new customer
@@ -52,7 +52,7 @@ export const customerSchema = baseCustomerSchema;
 // Schema for updating an existing customer
 export const customerUpdateSchema = baseCustomerSchema
   .extend({
-    oauth_providers: z.array(oauthProviderSchema).optional(),
+    oauthProviders: z.array(oauthProviderSchema).optional(),
   })
   .partial();
 

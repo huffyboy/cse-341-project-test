@@ -11,7 +11,9 @@ import {
   ValidationError,
   DatabaseError,
   isValidationError,
+  AuthenticationError,
 } from "../../utils/errors.js";
+import { GraphQLContext } from "../context.js";
 
 export const announcementResolvers = {
   Query: {
@@ -40,8 +42,10 @@ export const announcementResolvers = {
   Mutation: {
     createAnnouncement: async (
       _: unknown,
-      { input }: { input: AnnouncementInput }
+      { input }: { input: AnnouncementInput },
+      context: GraphQLContext
     ) => {
+      if (!context.customer) throw new AuthenticationError();
       try {
         const validatedData = validateAnnouncement(input);
         const announcement = new Announcement(validatedData);
@@ -55,8 +59,10 @@ export const announcementResolvers = {
     },
     updateAnnouncement: async (
       _: unknown,
-      { id, input }: { id: string; input: AnnouncementUpdateInput }
+      { id, input }: { id: string; input: AnnouncementUpdateInput },
+      context: GraphQLContext
     ) => {
+      if (!context.customer) throw new AuthenticationError();
       try {
         const validatedData = validateAnnouncementUpdate(input);
         const announcement = await Announcement.findByIdAndUpdate(
@@ -80,7 +86,12 @@ export const announcementResolvers = {
         throw new DatabaseError("Failed to update announcement");
       }
     },
-    deleteAnnouncement: async (_: unknown, { id }: { id: string }) => {
+    deleteAnnouncement: async (
+      _: unknown,
+      { id }: { id: string },
+      context: GraphQLContext
+    ) => {
+      if (!context.customer) throw new AuthenticationError();
       try {
         const announcement = await Announcement.findByIdAndDelete(id);
         if (!announcement) {

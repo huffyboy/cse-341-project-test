@@ -1,36 +1,19 @@
 // src/graphql/schema.ts
 import { ApolloServer } from "@apollo/server";
-// import { expressMiddleware } from '@apollo/server/express4';
+import { GraphQLFormattedError } from "graphql";
 import { announcementType } from "./types/announcement.js";
 import { customerType } from "./types/customer.js";
-import logger from "../config/logger.js";
-
-interface ApolloError {
-  message: string;
-  extensions?: {
-    originalError?: {
-      message?: string;
-      statusCode?: number;
-      code?: string;
-    };
-    code?: string;
-    statusCode?: number;
-    stack?: string;
-  };
-}
-
-// Combine all type definitions
-export const typeDefs = `
-    ${announcementType}
-    ${customerType}
-`;
-
-// Import resolvers
+import { authType } from "./types/auth.js";
 import { announcementResolvers } from "./resolvers/announcement.js";
 import { customerResolvers } from "./resolvers/customer.js";
+import { authResolvers } from "./resolvers/auth.js";
+import logger from "../config/logger.js";
 
-// Combine all resolvers
-export const resolvers = {
+// Combine type definitions
+const typeDefs = [announcementType, customerType, authType];
+
+// Combine resolvers
+const resolvers = {
   Query: {
     ...announcementResolvers.Query,
     ...customerResolvers.Query,
@@ -38,51 +21,41 @@ export const resolvers = {
   Mutation: {
     ...announcementResolvers.Mutation,
     ...customerResolvers.Mutation,
-  },
-  // Add any custom type resolvers here
-  Customer: {
-    // Add any customer-specific resolvers here
-  },
-  Announcement: {
-    // Add any announcement-specific resolvers here
+    ...authResolvers.Mutation,
   },
 };
+
+interface ApolloError {
+  message: string;
+  extensions?: {
+    code?: string;
+    statusCode?: number;
+  };
+}
+
+interface GraphQLRequestWithOperation {
+  operation?: {
+    operation?: string;
+  };
+}
 
 // Create Apollo Server instance
 export const server = new ApolloServer({
   typeDefs,
   resolvers,
-  // Add any additional server options here
-  formatError: (error: ApolloError) => {
-    const originalError = error.extensions?.originalError;
-    let statusCode = 500;
-    let code = "INTERNAL_SERVER_ERROR";
-
-    // Handle GraphQL validation errors
-    if (error.extensions?.code === "GRAPHQL_VALIDATION_FAILED") {
-      statusCode = 400;
-      code = "VALIDATION_ERROR";
-    }
-    // Handle our custom errors
-    else if (error.extensions?.code) {
-      statusCode = error.extensions.statusCode || 500;
-      code = error.extensions.code;
-    }
-    // Handle other errors
-    else if (originalError) {
-      statusCode = originalError.statusCode || 500;
-      code = originalError.code || "INTERNAL_SERVER_ERROR";
-    }
+  formatError: (error: GraphQLFormattedError) => {
+    const originalError = (error as { originalError?: ApolloError })
+      .originalError;
+    const statusCode = originalError?.extensions?.statusCode || 500;
+    const code = originalError?.extensions?.code || "INTERNAL_SERVER_ERROR";
 
     // Log the error
-    logger.error({
+    logger.error("GraphQL Error", {
       message: error.message,
       code,
       statusCode,
-      stack:
-        process.env.NODE_ENV === "production"
-          ? undefined
-          : error.extensions?.stack,
+      path: error.path,
+      locations: error.locations,
     });
 
     return {
@@ -90,57 +63,39 @@ export const server = new ApolloServer({
       extensions: {
         code,
         statusCode,
-        stack:
-          process.env.NODE_ENV === "production"
-            ? undefined
-            : error.extensions?.stack,
       },
     };
   },
   plugins: [
     {
       async requestDidStart() {
-        const startTime = Date.now();
         return {
-          async didResolveOperation(requestContext) {
-            const operation = requestContext.operation?.operation;
-            const operationName = requestContext.operationName;
-            const variables = requestContext.request.variables;
-            logger.info({
-              message: "GraphQL Operation Started",
-              operation,
-              operationName,
-              variables,
-              timestamp: new Date().toISOString(),
-            });
-          },
           async willSendResponse(requestContext) {
-            const duration = Date.now() - startTime;
-            const operation = requestContext.operation?.operation;
-            const operationName = requestContext.operationName;
-            logger.info({
-              message: "GraphQL Operation Completed",
-              operation,
-              operationName,
-              duration: `${duration}ms`,
-              timestamp: new Date().toISOString(),
-            });
-          },
-          async didEncounterErrors(requestContext) {
-            const errors = requestContext.errors;
-            const operation = requestContext.operation?.operation;
-            const operationName = requestContext.operationName;
-            logger.error({
-              message: "GraphQL Operation Error",
-              operation,
-              operationName,
-              errors: errors.map((e) => ({
-                message: e.message,
-                code: e.extensions?.code,
-                statusCode: e.extensions?.statusCode,
-              })),
-              timestamp: new Date().toISOString(),
-            });
+            const { request, response } = requestContext;
+            const operation =
+              (request as GraphQLRequestWithOperation).operation?.operation ||
+              "unknown";
+            const operationName = request.operationName || "unnamed";
+
+            if (response.body.kind === "single") {
+              const errors = response.body.singleResult.errors;
+              if (errors?.length) {
+                logger.error("GraphQL Operation Error", {
+                  operation,
+                  operationName,
+                  errors: errors.map((e) => ({
+                    message: e.message,
+                    code: e.extensions?.code,
+                    statusCode: e.extensions?.statusCode,
+                  })),
+                });
+              } else {
+                logger.info("GraphQL Operation Success", {
+                  operation,
+                  operationName,
+                });
+              }
+            }
           },
         };
       },
